@@ -39,8 +39,8 @@ export default function AuthPage() {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-logo">
-          <h1>📚 Booklubbing</h1>
-          <p>Tu club de lectura con estilo Tinder</p>
+          <h1>Booklubbing</h1>
+          <p>Booklubeando tipo Tinder</p>
         </div>
 
         <div className="auth-tabs">

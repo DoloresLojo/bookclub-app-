@@ -1,14 +1,14 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Dosis:wght@200..800&display=swap');
 
 :root {
-  --cream: #F9F4EC;
+  --cream: #FFFDF8;
   --warm-white: #FFFDF8;
-  --terracotta: #C4714A;
-  --terracotta-dark: #A85A35;
+  --terracotta: #4FA06F;
+  --terracotta-dark: #8FCFA8;
   --sage: #7A9E7E;
   --sage-light: #B8D4BA;
-  --charcoal: #2C2C2C;
-  --gray: #888;
+  --charcoal: #FF84C6;
+  --gray: #FFBODD;
   --light-gray: #E8E2D9;
   --card-shadow: 0 8px 32px rgba(44, 44, 44, 0.10);
   --radius: 16px;
@@ -21,7 +21,7 @@
 }
 
 body {
-  font-family: 'Lato', sans-serif;
+  font-family: 'Dosis', sans-serif;
   background-color: var(--cream);
   color: var(--charcoal);
   min-height: 100vh;
@@ -30,16 +30,16 @@ body {
 h1,
 h2,
 h3 {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Dosis', serif;
 }
 
 button {
   cursor: pointer;
-  font-family: 'Lato', sans-serif;
+  font-family: 'Dosis', sans-serif;
 }
 
 input {
-  font-family: 'Lato', sans-serif;
+  font-family: 'Dosis', sans-serif;
 }
 
 /* AUTH */

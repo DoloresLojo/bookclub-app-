@@ -28,7 +28,7 @@ export default function App() {
         if (data.memberIds.includes(user.uid)) {
           setSelectedClub({ id: clubId, ...data });
           setTab("swipe");
-          setJoinMsg(`¡Ya eras parte de "${data.name}"!`);
+          setJoinMsg(`Ya estabas en "${data.name}" reina`);
         } else {
           await updateDoc(doc(db, "clubs", clubId), {
             memberIds: arrayUnion(user.uid),
@@ -37,7 +37,7 @@ export default function App() {
           const updated = { id: clubId, ...data, memberIds: [...data.memberIds, user.uid] };
           setSelectedClub(updated);
           setTab("swipe");
-          setJoinMsg(`¡Te uniste a "${data.name}"! 🎉`);
+          setJoinMsg(`Miembro de "${data.name}" amorchh`);
         }
         window.history.replaceState({}, "", window.location.pathname);
         setTimeout(() => setJoinMsg(""), 4000);
@@ -58,9 +58,9 @@ export default function App() {
   return (
     <div className="app-layout">
       <nav className="navbar">
-        <span className="navbar-brand">📚 Booklubbing</span>
+        <span className="navbar-brand">Booklubbing</span>
         <div className="navbar-user">
-          <span>Hola, {user.displayName || user.email}</span>
+          <span>Benvenuti, {user.displayName || user.email}</span>
           <button className="btn-logout" onClick={logout}>Salir</button>
         </div>
       </nav>
@@ -79,22 +79,22 @@ export default function App() {
       )}
 
       <div className="nav-tabs">
-        <button className={`nav-tab ${tab === "books" ? "active" : ""}`} onClick={() => setTab("books")}>
-          Mis libros
+        <button className={`nav-tab ${tab === "biblioteca" ? "active" : ""}`} onClick={() => setTab("biblioteca")}>
+          biblioteca
         </button>
-        <button className={`nav-tab ${tab === "clubs" ? "active" : ""}`} onClick={() => setTab("clubs")}>
-          Mis clubs {selectedClub ? `· ${selectedClub.name}` : ""}
+        <button className={`nav-tab ${tab === "clubsillos" ? "active" : ""}`} onClick={() => setTab("clubsillos")}>
+          clubsillos {selectedClub ? `· ${selectedClub.name}` : ""}
         </button>
         <button className={`nav-tab ${tab === "swipe" ? "active" : ""}`} onClick={() => setTab("swipe")}>
-          Swipear
+          swipear
         </button>
         <button className={`nav-tab ${tab === "matches" ? "active" : ""}`} onClick={() => setTab("matches")}>
-          Matches
+          matches
         </button>
       </div>
 
-      {tab === "books" && <MyBooksPage />}
-      {tab === "clubs" && <ClubsPage onSelectClub={handleSelectClub} selectedClub={selectedClub} />}
+      {tab === "biblioteca" && <MyBooksPage />}
+      {tab === "clubsillos" && <ClubsPage onSelectClub={handleSelectClub} selectedClub={selectedClub} />}
       {tab === "swipe" && <SwipePage club={selectedClub} />}
       {tab === "matches" && <MatchesPage club={selectedClub} />}
     </div>

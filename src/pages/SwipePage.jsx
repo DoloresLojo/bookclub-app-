@@ -1,87 +1,93 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { db } from "../firebase";
 import { useAuth } from "../context/AuthContext";
 import {
-  collection, onSnapshot, query, where, doc, setDoc, getDoc, getDocs, updateDoc, arrayUnion
+  collection, query, where, doc, setDoc, getDocs
 } from "firebase/firestore";
 
 export default function SwipePage({ club }) {
   const { user } = useAuth();
   const [books, setBooks] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [swiping, setSwiping] = useState(null); // "left" | "right"
+  const [swiping, setSwiping] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [votedIds, setVotedIds] = useState(new Set());
+  // Cache all club votes in memory to avoid re-fetching
+  const clubVotesRef = useRef({});
 
   useEffect(() => {
     if (!club) return;
     setLoading(true);
 
-    // Get all books added by club members
-    const q = query(collection(db, "books"), where("addedBy", "in", club.memberIds));
-    const unsub = onSnapshot(q, async snap => {
-      const allBooks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    async function loadAll() {
+      // Fetch books and votes in parallel
+      const [booksSnap, myVotesSnap, allVotesSnap] = await Promise.all([
+        getDocs(query(collection(db, "books"), where("addedBy", "in", club.memberIds))),
+        getDocs(query(collection(db, "votes"), where("clubId", "==", club.id), where("userId", "==", user.uid))),
+        getDocs(query(collection(db, "votes"), where("clubId", "==", club.id)))
+      ]);
 
-      // Get user's votes for this club
-      const votesSnap = await getDocs(
-        query(collection(db, "votes"), where("clubId", "==", club.id), where("userId", "==", user.uid))
-      );
-      const voted = new Set(votesSnap.docs.map(d => d.data().bookId));
-      setVotedIds(voted);
+      const allBooks = booksSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const myVotedIds = new Set(myVotesSnap.docs.map(d => d.data().bookId));
 
-      const pending = allBooks.filter(b => !voted.has(b.id));
+      // Build votes cache: { bookId: [userId, ...] }
+      const votesCache = {};
+      allVotesSnap.docs.forEach(d => {
+        const { bookId, userId, liked } = d.data();
+        if (liked) {
+          if (!votesCache[bookId]) votesCache[bookId] = [];
+          votesCache[bookId].push(userId);
+        }
+      });
+      clubVotesRef.current = votesCache;
+
+      const pending = allBooks.filter(b => !myVotedIds.has(b.id));
       setBooks(pending);
       setCurrentIndex(0);
       setLoading(false);
-    });
-    return unsub;
+    }
+
+    loadAll();
   }, [club?.id]);
 
   async function handleVote(liked) {
     const book = books[currentIndex];
     if (!book) return;
 
+    // Animate immediately — no waiting
     setSwiping(liked ? "right" : "left");
 
-    setTimeout(async () => {
-      // Save vote
-      await setDoc(doc(db, "votes", `${club.id}_${user.uid}_${book.id}`), {
-        clubId: club.id,
-        userId: user.uid,
-        bookId: book.id,
-        liked,
-        createdAt: new Date()
-      });
+    // Save vote in background (don't await before advancing)
+    const votePromise = setDoc(doc(db, "votes", `${club.id}_${user.uid}_${book.id}`), {
+      clubId: club.id,
+      userId: user.uid,
+      bookId: book.id,
+      liked,
+      createdAt: new Date()
+    });
 
-      // Check for match
-      if (liked) {
-        await checkMatch(book);
-      }
-
+    // Advance card after animation
+    setTimeout(() => {
       setCurrentIndex(prev => prev + 1);
       setSwiping(null);
-    }, 350);
-  }
+    }, 300);
 
-  async function checkMatch(book) {
-    // Get all votes for this book in this club
-    const votesSnap = await getDocs(
-      query(collection(db, "votes"), where("clubId", "==", club.id), where("bookId", "==", book.id), where("liked", "==", true))
-    );
-    const likedBy = votesSnap.docs.map(d => d.data().userId);
-    likedBy.push(user.uid); // include current vote
-
-    // Check if all members liked it
-    const allLiked = club.memberIds.every(id => likedBy.includes(id));
-    if (allLiked) {
-      // Create match!
-      await setDoc(doc(db, "matches", `${club.id}_${book.id}`), {
-        clubId: club.id,
-        clubName: club.name,
-        bookId: book.id,
-        book,
-        matchedAt: new Date()
-      });
+    // Check match in background using cache
+    if (liked) {
+      await votePromise;
+      const likedBy = clubVotesRef.current[book.id] || [];
+      const allLiked = club.memberIds.every(id => likedBy.includes(id) || id === user.uid);
+      if (allLiked) {
+        await setDoc(doc(db, "matches", `${club.id}_${book.id}`), {
+          clubId: club.id,
+          clubName: club.name,
+          bookId: book.id,
+          book,
+          matchedAt: new Date()
+        });
+      }
+      // Update local cache
+      if (!clubVotesRef.current[book.id]) clubVotesRef.current[book.id] = [];
+      clubVotesRef.current[book.id].push(user.uid);
     }
   }
 
@@ -89,9 +95,9 @@ export default function SwipePage({ club }) {
     return (
       <div className="main-content">
         <div className="empty-state">
-          <div className="emoji">👆</div>
+          <div className="emoji">✨</div>
           <h3>Primero seleccioná un club</h3>
-          <p>Andá a la pestaña "Mis clubs" y hacé clic en uno para activarlo.</p>
+          <p>Andá a la pestaña "clubsillos" y hacé clic en uno para activarlo.</p>
         </div>
       </div>
     );
@@ -109,6 +115,7 @@ export default function SwipePage({ club }) {
   }
 
   const currentBook = books[currentIndex];
+  const nextBook = books[currentIndex + 1];
 
   if (!currentBook) {
     return (
@@ -135,7 +142,25 @@ export default function SwipePage({ club }) {
         <p className="swipe-progress">{books.length - currentIndex} libro{books.length - currentIndex !== 1 ? "s" : ""} por votar</p>
 
         <div className="swipe-card-wrapper">
-          <div className={`swipe-card ${swiping === "left" ? "swiping-left" : swiping === "right" ? "swiping-right" : ""}`}>
+          {/* Next card rendered behind for instant feel */}
+          {nextBook && (
+            <div className="swipe-card" style={{ transform: "scale(0.96) translateY(8px)", zIndex: 0, opacity: 0.7 }}>
+              {nextBook.cover
+                ? <img src={nextBook.cover} alt={nextBook.title} />
+                : <div className="swipe-card-placeholder">📖</div>
+              }
+              <div className="swipe-card-body">
+                <h3>{nextBook.title}</h3>
+                <p className="author">{nextBook.author}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Current card */}
+          <div
+            className={`swipe-card ${swiping === "left" ? "swiping-left" : swiping === "right" ? "swiping-right" : ""}`}
+            style={{ zIndex: 1 }}
+          >
             {currentBook.cover
               ? <img src={currentBook.cover} alt={currentBook.title} />
               : <div className="swipe-card-placeholder">📖</div>

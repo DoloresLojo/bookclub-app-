@@ -80,7 +80,7 @@ export default function MyBooksPage() {
           onChange={e => setSearchQuery(e.target.value)}
         />
         <button type="submit" className="btn-search" disabled={searching}>
-          {searching ? "..." : "🔍 Buscar"}
+          {searching ? "..." : "Buscá nena"}
         </button>
       </form>
 
@@ -111,9 +111,9 @@ export default function MyBooksPage() {
 
       {myBooks.length === 0 ? (
         <div className="empty-state">
-          <div className="emoji">📚</div>
-          <h3>Todavía no agregaste libros</h3>
-          <p>Buscá un libro arriba para comenzar</p>
+          <div className="emoji">🦋</div>
+          <h3>Todavía no agregaste libros, metelee</h3>
+          <p>no sabia q emoji poner</p>
         </div>
       ) : (
         <div className="books-grid">

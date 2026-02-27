@@ -23,9 +23,9 @@ export default function MatchesPage({ club }) {
     return (
       <div className="main-content">
         <div className="empty-state">
-          <div className="emoji">👆</div>
+          <div className="emoji">✨</div>
           <h3>Primero seleccioná un club</h3>
-          <p>Andá a la pestaña "Mis clubs" y hacé clic en uno para activarlo.</p>
+          <p>Andá a la pestaña "clubsillos" y hacé clic en uno para activarlo.</p>
         </div>
       </div>
     );
@@ -45,15 +45,15 @@ export default function MatchesPage({ club }) {
   return (
     <div className="main-content">
       <div className="matches-header">
-        <h2>🎯 Matches del club</h2>
-        <p>Libros que todas eligieron leer en {club.name}</p>
+        <h2>bookmatch</h2>
+        <p>Elegido: {club.name}!!!</p>
       </div>
 
       {matches.length === 0 ? (
         <div className="empty-state">
           <div className="emoji">💭</div>
-          <h3>Todavía no hay matches</h3>
-          <p>Cuando todas las integrantes voten ♥ al mismo libro, ¡aparecerá acá!</p>
+          <h3>no hay bookmatches</h3>
+          <p>tenemos que coincidir en alguno che!!</p>
         </div>
       ) : (
         <div>
