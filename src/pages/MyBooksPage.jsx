@@ -7,7 +7,7 @@ import {
 
 async function searchGoogleBooks(query) {
   const res = await fetch(
-    `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=8&langRestrict=es`
+    `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=12`
   );
   const data = await res.json();
   return (data.items || []).map(item => ({
