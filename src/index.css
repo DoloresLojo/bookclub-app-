@@ -20,6 +20,11 @@
   box-sizing: border-box;
 }
 
+html {
+  /* Esto aumenta el tamaño base de todos los textos (rems) y hace que todo se vea proporcionalmente más grande */
+  font-size: 18px;
+}
+
 body {
   font-family: 'Dosis', sans-serif;
   background-color: var(--cream);
